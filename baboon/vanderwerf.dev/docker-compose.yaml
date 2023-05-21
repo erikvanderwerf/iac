@@ -1,0 +1,5 @@
+services:
+  frontend:
+    image: vanderwerf:latest
+    ports:
+      - 3100:3000
