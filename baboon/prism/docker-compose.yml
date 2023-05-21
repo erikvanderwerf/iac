@@ -41,10 +41,12 @@ services:
       - seccomp:unconfined
       - apparmor:unconfined
     ports:
-      - "30010:2342" # HTTP port (host:container)
+      - "3110:2342" # HTTP port (host:container)
+    env_file:
+      - secrets/secrets.env
     environment:
       PHOTOPRISM_ADMIN_USER: "admin"                 # admin login username
-      PHOTOPRISM_ADMIN_PASSWORD: /run/secrets/photoprism_admin_password          # initial admin password (8-72 characters)
+      # PHOTOPRISM_ADMIN_PASSWORD: secrets.env       # initial admin password (8-72 characters)
       PHOTOPRISM_AUTH_MODE: "password"               # authentication mode (public, password)
       PHOTOPRISM_SITE_URL: "https://prism.vanderwerf.dev:2342/"  # server URL in the format "http(s)://domain.name(:port)/(path)"
       PHOTOPRISM_ORIGINALS_LIMIT: 10000               # file size limit for originals in MB (increase for high-res video)
@@ -69,7 +71,7 @@ services:
       PHOTOPRISM_DATABASE_SERVER: "mariadb:3306"     # MariaDB or MySQL database server (hostname:port)
       PHOTOPRISM_DATABASE_NAME: "photoprism"         # MariaDB or MySQL database schema name
       PHOTOPRISM_DATABASE_USER: "photoprism"         # MariaDB or MySQL database user name
-      PHOTOPRISM_DATABASE_PASSWORD: /run/secrets/photoprism_database_password       # MariaDB or MySQL database user password
+      # PHOTOPRISM_DATABASE_PASSWORD: secrets.env       # MariaDB or MySQL database user password
       PHOTOPRISM_SITE_CAPTION: "AI-Powered Photos App"
       PHOTOPRISM_SITE_DESCRIPTION: ""                # meta site description
       PHOTOPRISM_SITE_AUTHOR: ""                     # meta site author
@@ -109,7 +111,7 @@ services:
     image: mariadb:10.11
     ## If MariaDB gets stuck in a restart loop, this points to a memory or filesystem issue:
     ## https://docs.photoprism.app/getting-started/troubleshooting/#fatal-server-errors
-    restart: unless-stopped
+    restart: no
     stop_grace_period: 5s
     security_opt: # see https://github.com/MariaDB/mariadb-docker/issues/434#issuecomment-1136151239
       - seccomp:unconfined
@@ -117,14 +119,16 @@ services:
     command: mysqld --innodb-buffer-pool-size=512M --transaction-isolation=READ-COMMITTED --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=512 --innodb-rollback-on-timeout=OFF --innodb-lock-wait-timeout=120
     ## Never store database files on an unreliable device such as a USB flash drive, an SD card, or a shared network folder:
     volumes:
-      - "mariadb_volume:/var/lib/mysql" # DO NOT REMOVE
+      - "./mariadb:/var/lib/mysql" # DO NOT REMOVE
+    env_file:
+      - secrets/secrets.env
     environment:
       MARIADB_AUTO_UPGRADE: "1"
       MARIADB_INITDB_SKIP_TZINFO: "1"
       MARIADB_DATABASE: "photoprism"
       MARIADB_USER: "photoprism"
-      MARIADB_PASSWORD: /run/secrets/photoprism_database_password
-      MARIADB_ROOT_PASSWORD: /run/secrets/photoprism_database_root_password
+      # MARIADB_PASSWORD: secrets.env
+      # MARIADB_ROOT_PASSWORD: secrets.env
 
   ## Watchtower upgrades services automatically (optional)
   ## see https://docs.photoprism.app/getting-started/updates/#watchtower
@@ -140,21 +144,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "~/.docker/config.json:/config.json" # optional, for authentication if you have a Docker Hub account
 
-secrets:
-  photoprism_admin_password:
-    file: secrets/photoprism_admin_password.txt
-  photoprism_database_password:
-    file: secrets/photoprism_database_password.txt
-  photoprism_database_root_password:
-    file: secrets/photoprism_database_root_password.txt
-
 volumes:
-  mariadb_volume:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: "addr=truenas.local,rw"
-      device: ":/mnt/lurch/photoprism/mariadb"
   originals_volume:
     driver: local
     driver_opts:
