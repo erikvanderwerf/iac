@@ -48,8 +48,8 @@ services:
       PHOTOPRISM_ADMIN_USER: "admin"                 # admin login username
       # PHOTOPRISM_ADMIN_PASSWORD: secrets.env       # initial admin password (8-72 characters)
       PHOTOPRISM_AUTH_MODE: "password"               # authentication mode (public, password)
-      PHOTOPRISM_SITE_URL: "https://prism.vanderwerf.dev:2342/"  # server URL in the format "http(s)://domain.name(:port)/(path)"
-      PHOTOPRISM_ORIGINALS_LIMIT: 10000               # file size limit for originals in MB (increase for high-res video)
+      PHOTOPRISM_SITE_URL: "https://prism.vanderwerf.dev/"  # server URL in the format "http(s)://domain.name(:port)/(path)"
+      PHOTOPRISM_ORIGINALS_LIMIT: 50000               # file size limit for originals in MB (increase for high-res video)
       PHOTOPRISM_HTTP_COMPRESSION: "gzip"            # improves transfer speed and bandwidth utilization (none or gzip)
       PHOTOPRISM_LOG_LEVEL: "info"                   # log level: trace, debug, info, warning, error, fatal, or panic
       PHOTOPRISM_READONLY: "false"                   # do not modify originals directory (reduced functionality)
@@ -64,7 +64,7 @@ services:
       PHOTOPRISM_DISABLE_RAW: "false"                # disables indexing and conversion of RAW images
       PHOTOPRISM_RAW_PRESETS: "false"                # enables applying user presets when converting RAW images (reduces performance)
       PHOTOPRISM_JPEG_QUALITY: 85                    # a higher value increases the quality and file size of JPEG images and thumbnails (25-100)
-      PHOTOPRISM_DETECT_NSFW: "true"                # automatically flags photos as private that MAY be offensive (requires TensorFlow)
+      PHOTOPRISM_DETECT_NSFW: "false"                # automatically flags photos as private that MAY be offensive (requires TensorFlow)
       PHOTOPRISM_UPLOAD_NSFW: "true"                 # allows uploads that MAY be offensive (no effect without TensorFlow)
       # PHOTOPRISM_DATABASE_DRIVER: "sqlite"         # SQLite is an embedded database that doesn't require a server
       PHOTOPRISM_DATABASE_DRIVER: "mysql"            # use MariaDB 10.5+ or MySQL 8+ instead of SQLite for improved performance
@@ -72,11 +72,11 @@ services:
       PHOTOPRISM_DATABASE_NAME: "photoprism"         # MariaDB or MySQL database schema name
       PHOTOPRISM_DATABASE_USER: "photoprism"         # MariaDB or MySQL database user name
       # PHOTOPRISM_DATABASE_PASSWORD: secrets.env       # MariaDB or MySQL database user password
-      PHOTOPRISM_SITE_CAPTION: "AI-Powered Photos App"
-      PHOTOPRISM_SITE_DESCRIPTION: ""                # meta site description
-      PHOTOPRISM_SITE_AUTHOR: ""                     # meta site author
+      PHOTOPRISM_SITE_CAPTION: "Erik VanderWerf's Photo Store"
+      PHOTOPRISM_SITE_DESCRIPTION: "A repository of my photos."  # meta site description
+      PHOTOPRISM_SITE_AUTHOR: "Erik VanderWerf"      # meta site author
       ## Run/install on first startup (options: update https gpu tensorflow davfs clitools clean):
-      # PHOTOPRISM_INIT: "https gpu tensorflow"
+      PHOTOPRISM_INIT: "https gpu tensorflow"
       ## Hardware Video Transcoding:
       # PHOTOPRISM_FFMPEG_ENCODER: "software"        # FFmpeg encoder ("software", "intel", "nvidia", "apple", "raspberry")
       # PHOTOPRISM_FFMPEG_BITRATE: "32"              # FFmpeg encoding bitrate limit in Mbit/s (default: 50)
@@ -87,8 +87,8 @@ services:
     ## Start as non-root user before initialization (supported: 0, 33, 50-99, 500-600, and 900-1200):
     # user: "1000:1000"
     ## Share hardware devices with FFmpeg and TensorFlow (optional):
-    # devices:
-    #  - "/dev/dri:/dev/dri"                         # Intel QSV
+    devices:
+      - "/dev/dri:/dev/dri"                         # Intel QSV
     #  - "/dev/nvidia0:/dev/nvidia0"                 # Nvidia CUDA
     #  - "/dev/nvidiactl:/dev/nvidiactl"
     #  - "/dev/nvidia-modeset:/dev/nvidia-modeset"
@@ -102,7 +102,7 @@ services:
       # "/host/folder:/photoprism/folder"                # Example
       - "originals_volume:/photoprism/originals"               # Original media files (DO NOT REMOVE)
       # - "/example/family:/photoprism/originals/family" # *Additional* media folders can be mounted like this
-      # - "~/Import:/photoprism/import"                  # *Optional* base folder from which files can be imported to originals
+      - "./import:/photoprism/import"                  # *Optional* base folder from which files can be imported to originals
       - "storage_volume:/photoprism/storage"                  # *Writable* storage folder for cache, database, and sidecar files (DO NOT REMOVE)
 
   ## Database Server (recommended)
@@ -149,11 +149,11 @@ volumes:
     driver: local
     driver_opts:
       type: nfs
-      o: "addr=truenas.local,rw"
-      device: ":/mnt/lurch/photoprism/originals"
+      o: "rw,nconnect=16"
+      device: "truenas.local:/mnt/gomez/photos"
   storage_volume:
     driver: local
     driver_opts:
       type: nfs
-      o: "addr=truenas.local,rw"
-      device: ":/mnt/lurch/photoprism/storage"
+      o: "rw,nconnect=16"
+      device: "truenas.local:/mnt/gomez/photoprism-storage"
