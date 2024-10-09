@@ -1,0 +1,37 @@
+version: "3.8"
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    restart: unless-stopped
+    user: 1000:1000
+    # network_mode: host
+    ports: []
+    volumes:
+      - cache:/cache
+      - config:/config
+      - media:/media
+      - /dev/dri:/dev/dri
+    networks:
+      - routing
+volumes:
+  cache:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=10.4.0.10,nolock,soft,rw
+      device: :/mnt/gomez/jellyfin-cache
+  config:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=10.4.0.10,nolock,soft,rw
+      device: :/mnt/gomez/jellyfin-config
+  media:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=10.4.0.10,nolock,soft,rw
+      device: :/mnt/lurch/media
+networks:
+  routing:
+    external: true
