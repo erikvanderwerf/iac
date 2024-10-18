@@ -1,0 +1,17 @@
+services:
+  caddy:
+    build:
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    ports:
+      - "443:443"
+    volumes:
+      - ./data:/data
+      - ./config:/config
+      - ./etc_caddy:/etc/caddy
+    env_file: "./cloudflare.env"
+    networks:
+      - routing
+networks:
+  routing:
+    external: true

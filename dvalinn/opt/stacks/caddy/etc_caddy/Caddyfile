@@ -1,0 +1,19 @@
+{
+    # debug
+    acme_dns cloudflare {env.CF_API_TOKEN}
+
+    servers :443 {
+        listener_wrappers {
+            proxy_protocol {
+                allow 10.4.0.0/8
+            }
+            tls
+        }
+    }
+}
+
+dockge.vanderwerf.dev {
+    reverse_proxy {
+        to dockge:5001
+    }
+}
