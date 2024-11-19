@@ -2,18 +2,44 @@
     # debug
     acme_dns cloudflare {env.CF_API_TOKEN}
 
-    servers :443 {
+    servers {
+        trusted_proxies static private_ranges
+    }
+
+    servers :8443 {
         listener_wrappers {
             proxy_protocol {
-                allow 10.4.0.0/8
+                allow 10.4.0.0/16
             }
             tls
         }
     }
 }
 
-dockge.vanderwerf.dev {
-    reverse_proxy {
-        to dockge:5001
+# Servers
+
+# dockge.vanderwerf.dev:8443 {
+#   respond "Hello There 8443"
+# }
+
+# dockge.vanderwerf.dev:443 {
+#   respond "Hello There 443"
+# }
+
+dockge.vanderwerf.dev dockge.vanderwerf.dev:8443 {
+    reverse_proxy dockge:5001
+}
+
+jellyfin.vanderwerf.dev jellyfin.vanderwerf.dev:8443 {
+    request_body {
+        max_size 20MB
+    }
+    reverse_proxy jellyfin:8096 {
+        response_buffers 0B
     }
 }
+
+mealie.vanderwerf.dev mealie.vanderwerf.dev:8443 {
+    reverse_proxy mealie:9000
+}
+
